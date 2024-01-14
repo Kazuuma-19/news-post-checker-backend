@@ -9,9 +9,3 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
-model Posts {
-  id Int @default(autoincrement()) @id
-  title String
-  body String
-}
