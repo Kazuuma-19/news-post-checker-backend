@@ -1,37 +1,13 @@
 const express = require("express");
 const router = express.Router();
-
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const studentController = require("../controller/studentController");
 
 // students
-router.get("/", async (req, res) => {
-  const allStudents = await prisma.students.findMany();
-  res.json(allStudents);
-});
+router.get("/", studentController.index);
 
-router.post("/", async (req, res) => {
-  const newStudent = await prisma.students.create({ data: req.body });
-  res.json(newStudent);
-});
+router.post("/", studentController.store);
 
-router.put("/:id", async (req, res) => {
-  const id = req.params.id;
-  const name = req.body.name;
+router.put("/:id", studentController.update);
 
-  const updatedStudent = await prisma.students.update({
-    where: { id: parseInt(id) },
-    data: { name: name },
-  });
-  res.json(updatedStudent);
-});
-
-router.delete("/:id", async (req, res) => {
-  const id = req.params.id;
-
-  const deletedStudent = await prisma.students.delete({
-    where: { id: parseInt(id) },
-  });
-  res.json(deletedStudent);
-});
+router.delete("/:id", studentController.destroy);
 module.exports = router;

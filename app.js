@@ -8,6 +8,6 @@ app.use(cors());
 
 app.use(express.json());
 
-app.use(indexRouter);
+app.use("/students", indexRouter);
 
 module.exports = app;
