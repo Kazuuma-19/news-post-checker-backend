@@ -2,15 +2,15 @@ name: Fly Deploy
 on:
   push:
     branches:
-      - main    # change to main if needed
+      - main # change to main if needed
 jobs:
   deploy:
     name: Deploy app
     runs-on: ubuntu-latest
-    concurrency: deploy-group    # optional: ensure only one action runs at a time
+    concurrency: deploy-group # optional: ensure only one action runs at a time
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+      - uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Setup Node
         uses: actions/setup-node@v3
@@ -18,7 +18,7 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-       name: Apply all pending migrations to the database
+      - name: Apply all pending migrations to the database
         run: npx prisma migrate deploy
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
