@@ -4,20 +4,20 @@ const prisma = new PrismaClient();
 const studentController = {
   index: async (req, res) => {
     try {
-      const allStudents = await prisma.students.findMany();
+      const allStudents = await prisma.student.findMany();
       res.json(allStudents);
     } catch (error) {
-      console.error("Error retrieving students:", error);
+      console.error("Error retrieving student:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   },
 
   store: async (req, res) => {
     try {
-      const newStudent = await prisma.students.create({ data: req.body });
+      const newStudent = await prisma.student.create({ data: req.body });
       res.json(newStudent);
     } catch (error) {
-      console.error("Error retrieving students:", error);
+      console.error("Error retrieving student:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   },
@@ -25,15 +25,18 @@ const studentController = {
   update: async (req, res) => {
     try {
       const id = req.params.id;
-      const name = req.body.name;
+      const { name, grade } = req.body;
 
-      const updatedStudent = await prisma.students.update({
+      const updatedStudent = await prisma.student.update({
         where: { id: parseInt(id) },
-        data: { name: name },
+        data: {
+          name: name,
+          grade: grade,
+        },
       });
       res.json(updatedStudent);
     } catch (error) {
-      console.error("Error retrieving students:", error);
+      console.error("Error retrieving student:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   },
@@ -42,12 +45,12 @@ const studentController = {
     try {
       const id = req.params.id;
 
-      const deletedStudent = await prisma.students.delete({
+      const deletedStudent = await prisma.student.delete({
         where: { id: parseInt(id) },
       });
       res.json(deletedStudent);
     } catch (error) {
-      console.error("Error retrieving students:", error);
+      console.error("Error retrieving student:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   },
