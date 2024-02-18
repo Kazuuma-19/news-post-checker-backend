@@ -1,4 +1,5 @@
 const puppeteer = require("puppeteer");
+const { DateTime } = require("luxon");
 require("dotenv").config();
 // eslint-disable-next-line no-undef
 const dotenv = process.env;
@@ -31,12 +32,30 @@ const scrapingController = async (req, res) => {
       return elements.map((element) => {
         const name = element.querySelector(".vr_followUserName").innerText;
         const reply = !!element.querySelector(".vr_followHeaderTo");
-        return { name, reply };
+        const dateString = element.querySelector(".vr_followTime").innerText;
+
+        return { name, reply, dateString };
       });
     });
 
+    const processedData = postData.map((data) => {
+      const dateStringWithoutDay = data.dateString.replace(
+        /\([日月火水木金土]\)/,
+        "",
+      );
+      const formatString = "yyyy/M/d HH:mm";
+      const time = DateTime.fromFormat(dateStringWithoutDay, formatString, {
+        zone: "Asia/Tokyo",
+      });
+
+      return {
+        ...data,
+        dateTime: time,
+      };
+    });
+
     await browser.close();
-    res.json(postData);
+    res.json(processedData);
   } catch (error) {
     console.error("Error retrieving student:", error);
     res.status(500).json({ error: "Internal server error" });
