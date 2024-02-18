@@ -4,61 +4,74 @@ require("dotenv").config();
 // eslint-disable-next-line no-undef
 const dotenv = process.env;
 
-const scrapingController = async (req, res) => {
+/**
+ * スクレイピングを行い、データを取得
+ * @param {} pageUrl
+ * @returns {array of objects} 各投稿の名前、返信かどうか、投稿時間を配列形式で返却
+ */
+const scrapePageData = async (pageUrl) => {
+  const browser = await puppeteer.launch();
   try {
-    // Launch the browser and open a new blank page
-    const browser = await puppeteer.launch();
     const page = await browser.newPage();
-    const homeUrl = dotenv.LOGIN_URL;
-    await page.goto(homeUrl);
+    await page.goto(pageUrl);
 
-    const address = dotenv.LOGIN_USERNAME;
-    const password = dotenv.LOGIN_PASSWORD;
-    await page.type(".form-username-slash input", address);
-    await page.type(".form-password-slash input", password);
+    // 環境変数からログイン情報を参照し、ログイン
+    await page.type(".form-username-slash input", dotenv.LOGIN_USERNAME);
+    await page.type(".form-password-slash input", dotenv.LOGIN_PASSWORD);
     await page.click(".login-button");
 
     await page.waitForNavigation();
 
-    // jump to news page
-    const newPage = await browser.newPage();
-    const newsUrl = decodeURIComponent(req.query.url);
-    await newPage.goto(newsUrl);
-
-    const postData = await newPage.evaluate(() => {
-      const elements = Array.from(
+    /**
+     * サイトから必要な要素を取得
+     * 名前、返信かどうか、投稿時間
+     * @return {array of objects} 各投稿の名前、返信かどうか、投稿時間を配列形式で返却
+     */
+    const data = await page.evaluate(() => {
+      // 1つの投稿を囲うブロックを取得
+      const elementsBlock = Array.from(
         document.querySelectorAll(".vr_followContentsColumn"),
       );
-      return elements.map((element) => {
-        const name = element.querySelector(".vr_followUserName").innerText;
-        const reply = !!element.querySelector(".vr_followHeaderTo");
-        const dateString = element.querySelector(".vr_followTime").innerText;
-
-        return { name, reply, dateString };
-      });
+      // 各要素に分解
+      return elementsBlock.map((element) => ({
+        name: element.querySelector(".vr_followUserName").innerText,
+        reply: !!element.querySelector(".vr_followHeaderTo"),
+        dateString: element
+          .querySelector(".vr_followTime")
+          .innerText.replace(/\([日月火水木金土]\)/, ""),
+      }));
     });
 
-    const processedData = postData.map((data) => {
-      const dateStringWithoutDay = data.dateString.replace(
-        /\([日月火水木金土]\)/,
-        "",
-      );
-      const formatString = "yyyy/M/d HH:mm";
-      const time = DateTime.fromFormat(dateStringWithoutDay, formatString, {
+    // evaluateの中では、DateTimeにアクセスできないため、ここで処理をする
+    return data.map(({ name, reply, dateString }) => ({
+      name,
+      reply,
+      // 時刻を日本時間として扱うように設定
+      dateTime: DateTime.fromFormat(dateString, "yyyy/M/d H:mm", {
         zone: "Asia/Tokyo",
-      });
-
-      return {
-        ...data,
-        dateTime: time,
-      };
-    });
-
-    await browser.close();
-    res.json(processedData);
+      }),
+    }));
   } catch (error) {
-    console.error("Error retrieving student:", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Error during scraping:", error);
+    throw new Error("Scraping failed");
+  } finally {
+    await browser.close();
+  }
+};
+
+/**
+ * スクレイピング用コンストラクタ
+ * @param {*} req
+ * @param {*} res
+ */
+const scrapingController = async (req, res) => {
+  try {
+    console.log(req);
+    const newsUrl = decodeURIComponent(req.query.url);
+    const postData = await scrapePageData(newsUrl);
+    res.json(postData);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 
