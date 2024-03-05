@@ -1,3 +1,5 @@
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
 const puppeteer = require("puppeteer");
 const { DateTime } = require("luxon");
 require("dotenv").config();
@@ -60,16 +62,61 @@ const scrapePageData = async (pageUrl) => {
 };
 
 /**
+ * 投稿数と返信数をカウント
+ * @param {*} postData スクレイピングしたデータ
+ * @returns {array of objects} 投稿数と返信数、日時をカウントしたデータを返却
+ */
+const countPosts = async (postData) => {
+  try {
+    // データベースから全ての学生を取得
+    const allStudents = await prisma.student.findMany();
+
+    return allStudents.map((student) => {
+      let replyCount = 0;
+      let postCount = 0;
+      const dateReplyTime = [];
+      const datePostTime = [];
+
+      // 名前の空白を削除
+      const trimmedStudentName = student.name.replace(/\s/g, "");
+
+      // スクレイピングしたデータから返信数と投稿数、日時をカウント
+      postData.forEach((post) => {
+        if (trimmedStudentName === post.name.replace(/\s/g, "")) {
+          // 返信の場合
+          if (post.reply) {
+            dateReplyTime.push(post.dateTime);
+            replyCount++;
+          } else {
+            postCount++;
+            datePostTime.push(post.dateTime);
+          }
+        }
+      });
+
+      return {
+        ...student,
+        reply: { replyCount, dateTime: dateReplyTime },
+        post: { postCount, dateTime: datePostTime },
+      };
+    });
+  } catch (error) {
+    console.error("Error retrieving student:", error);
+    return [];
+  }
+};
+
+/**
  * スクレイピング用コンストラクタ
  * @param {*} req
  * @param {*} res
  */
 const scrapingController = async (req, res) => {
   try {
-    console.log(req);
     const newsUrl = decodeURIComponent(req.query.url);
     const postData = await scrapePageData(newsUrl);
-    res.json(postData);
+    const countedPosts = await countPosts(postData);
+    res.json(countedPosts);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
