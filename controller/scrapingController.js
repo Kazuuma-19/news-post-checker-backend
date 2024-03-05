@@ -60,6 +60,7 @@ const scrapePageData = async (pageUrl) => {
     await browser.close();
   }
 };
+
 /**
  * 投稿数と返信数をカウント
  * @param {*} postData スクレイピングしたデータ
@@ -104,6 +105,7 @@ const countPosts = async (postData) => {
     return [];
   }
 };
+
 /**
  * スクレイピング用コンストラクタ
  * @param {*} req
