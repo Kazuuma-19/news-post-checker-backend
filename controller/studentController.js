@@ -4,7 +4,9 @@ const prisma = new PrismaClient();
 const studentController = {
   index: async (req, res) => {
     try {
-      const allStudents = await prisma.student.findMany();
+      const allStudents = await prisma.student.findMany({
+        orderBy: [{ grade: "desc" }, { name: "asc" }],
+      });
       res.json(allStudents);
     } catch (error) {
       console.error("Error retrieving student:", error);
