@@ -12,7 +12,9 @@ const dotenv = process.env;
  * @returns {array of objects} 各投稿の名前、返信かどうか、投稿時間を配列形式で返却
  */
 const scrapePageData = async (pageUrl) => {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
   try {
     const page = await browser.newPage();
     await page.goto(pageUrl);
