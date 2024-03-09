@@ -2,3 +2,4 @@
 .env
 er.drawio
 /.cache
+prisma/seed.js
