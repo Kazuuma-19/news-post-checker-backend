@@ -98,8 +98,8 @@ const countPosts = async (postData) => {
 
       return {
         ...student,
-        reply: { replyCount, dateTime: dateReplyTime },
-        post: { postCount, dateTime: datePostTime },
+        reply: { count: replyCount, dateTime: dateReplyTime },
+        post: { count: postCount, dateTime: datePostTime },
       };
     });
   } catch (error) {
