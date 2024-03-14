@@ -71,7 +71,12 @@ const scrapePageData = async (pageUrl) => {
 const countPosts = async (postData) => {
   try {
     // データベースから全ての学生を取得
-    const allStudents = await prisma.student.findMany();
+    const allStudents = await prisma.student.findMany({
+      where: {
+        active: true,
+      },
+      orderBy: [{ grade: "desc" }, { name: "asc" }],
+    });
 
     return allStudents.map((student) => {
       let replyCount = 0;

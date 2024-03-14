@@ -17,6 +17,7 @@ model Student {
   id         Int      @id @default(autoincrement())
   name       String
   grade      Grade
+  active    Boolean  @default(true)
   created_at DateTime @default(now())
   updated_at DateTime @default(now())
 }
