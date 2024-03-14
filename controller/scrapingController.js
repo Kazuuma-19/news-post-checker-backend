@@ -70,7 +70,7 @@ const scrapePageData = async (pageUrl) => {
  */
 const countPosts = async (postData) => {
   try {
-    // データベースから全ての学生を取得
+    // データベースから活動中の全ての学生を取得
     const allStudents = await prisma.student.findMany({
       where: {
         active: true,
