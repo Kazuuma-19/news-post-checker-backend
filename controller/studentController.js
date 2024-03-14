@@ -27,13 +27,14 @@ const studentController = {
   update: async (req, res) => {
     try {
       const id = req.params.id;
-      const { name, grade } = req.body;
+      const { name, grade, active } = req.body;
 
       const updatedStudent = await prisma.student.update({
         where: { id: parseInt(id) },
         data: {
           name: name,
           grade: grade,
+          active: active,
         },
       });
       res.json(updatedStudent);
