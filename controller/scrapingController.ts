@@ -2,9 +2,9 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 import puppeteer from "puppeteer";
 import { DateTime } from "luxon";
-import { Request, Response } from "express";
 import dotenv from "dotenv";
 dotenv.config();
+import { Request, Response } from "express";
 import { ScrapedData } from "../types/post";
 
 /**
@@ -100,7 +100,6 @@ const countPosts = async (postData: ScrapedData[]) => {
         if (trimmedStudentName === post.name.replace(/\s/g, "")) {
           // 返信の場合
           if (post.reply) {
-            // TODO: toString動作するのか？
             dateReplyTime.push(post.dateTime.toString());
             replyCount++;
           } else {
