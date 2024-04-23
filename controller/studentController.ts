@@ -1,8 +1,9 @@
-const { PrismaClient } = require("@prisma/client");
+import { PrismaClient } from "@prisma/client";
+import { Request, Response } from "express";
 const prisma = new PrismaClient();
 
 const studentController = {
-  index: async (req, res) => {
+  index: async (req: Request, res: Response) => {
     try {
       const allStudents = await prisma.student.findMany({
         orderBy: [{ grade: "desc" }, { name: "asc" }],
@@ -14,7 +15,7 @@ const studentController = {
     }
   },
 
-  store: async (req, res) => {
+  store: async (req: Request, res: Response) => {
     try {
       const newStudent = await prisma.student.create({ data: req.body });
       res.json(newStudent);
@@ -24,7 +25,7 @@ const studentController = {
     }
   },
 
-  update: async (req, res) => {
+  update: async (req: Request, res: Response) => {
     try {
       const id = req.params.id;
       const { name, grade, active } = req.body;
@@ -44,7 +45,7 @@ const studentController = {
     }
   },
 
-  destroy: async (req, res) => {
+  destroy: async (req: Request, res: Response) => {
     try {
       const id = req.params.id;
 
@@ -59,4 +60,4 @@ const studentController = {
   },
 };
 
-module.exports = studentController;
+export default studentController;
