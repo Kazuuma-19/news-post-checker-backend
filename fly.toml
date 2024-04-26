@@ -1,10 +1,10 @@
-# fly.toml app configuration file generated for news-post-checker-backend on 2024-03-07T09:26:00-08:00
+# fly.toml app configuration file generated for news-post-checker-backend on 2024-04-26T10:37:47-07:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
 app = 'news-post-checker-backend'
-primary_region = 'sjc'
+primary_region = 'nrt'
 
 [build]
 
@@ -20,6 +20,6 @@ primary_region = 'sjc'
   memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1
-
-# [deploy]
-# release_command = 'npx prisma migrate deploy'
+  
+[deploy]
+  release_command = 'npx prisma migrate deploy'
