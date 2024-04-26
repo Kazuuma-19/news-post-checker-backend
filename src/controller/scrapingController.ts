@@ -1,17 +1,18 @@
-const { PrismaClient } = require("@prisma/client");
+import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
-const puppeteer = require("puppeteer");
-const { DateTime } = require("luxon");
-require("dotenv").config();
-// eslint-disable-next-line no-undef
-const dotenv = process.env;
+import puppeteer from "puppeteer";
+import { DateTime } from "luxon";
+import dotenv from "dotenv";
+dotenv.config();
+import { Request, Response } from "express";
+import { ScrapedData } from "../types/post";
 
 /**
  * スクレイピングを行い、データを取得
  * @param {} pageUrl
  * @returns {array of objects} 各投稿の名前、返信かどうか、投稿時間を配列形式で返却
  */
-const scrapePageData = async (pageUrl) => {
+const scrapePageData = async (pageUrl: string): Promise<ScrapedData[]> => {
   const browser = await puppeteer.launch({
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
@@ -20,8 +21,14 @@ const scrapePageData = async (pageUrl) => {
     await page.goto(pageUrl);
 
     // 環境変数からログイン情報を参照し、ログイン
-    await page.type(".form-username-slash input", dotenv.LOGIN_USERNAME);
-    await page.type(".form-password-slash input", dotenv.LOGIN_PASSWORD);
+    await page.type(
+      ".form-username-slash input",
+      process.env.LOGIN_USERNAME as string,
+    );
+    await page.type(
+      ".form-password-slash input",
+      process.env.LOGIN_PASSWORD as string,
+    );
     await page.click(".login-button");
 
     await page.waitForNavigation();
@@ -38,11 +45,12 @@ const scrapePageData = async (pageUrl) => {
       );
       // 各要素に分解
       return elementsBlock.map((element) => ({
-        name: element.querySelector(".vr_followUserName").innerText,
+        name: (element.querySelector(".vr_followUserName") as HTMLElement)
+          ?.innerText,
         reply: !!element.querySelector(".vr_followHeaderTo"),
-        dateString: element
-          .querySelector(".vr_followTime")
-          .innerText.replace(/\([日月火水木金土]\)/, ""),
+        dateString: (
+          element.querySelector(".vr_followTime") as HTMLElement
+        )?.innerText.replace(/\([日月火水木金土]\)/, ""),
       }));
     });
 
@@ -68,7 +76,7 @@ const scrapePageData = async (pageUrl) => {
  * @param {*} postData スクレイピングしたデータ
  * @returns {array of objects} 投稿数と返信数、日時をカウントしたデータを返却
  */
-const countPosts = async (postData) => {
+const countPosts = async (postData: ScrapedData[]) => {
   try {
     // データベースから活動中の全ての学生を取得
     const allStudents = await prisma.student.findMany({
@@ -81,8 +89,8 @@ const countPosts = async (postData) => {
     return allStudents.map((student) => {
       let replyCount = 0;
       let postCount = 0;
-      const dateReplyTime = [];
-      const datePostTime = [];
+      const dateReplyTime: string[] = [];
+      const datePostTime: string[] = [];
 
       // 名前の空白を削除
       const trimmedStudentName = student.name.replace(/\s/g, "");
@@ -92,11 +100,11 @@ const countPosts = async (postData) => {
         if (trimmedStudentName === post.name.replace(/\s/g, "")) {
           // 返信の場合
           if (post.reply) {
-            dateReplyTime.push(post.dateTime);
+            dateReplyTime.push(post.dateTime.toString());
             replyCount++;
           } else {
             postCount++;
-            datePostTime.push(post.dateTime);
+            datePostTime.push(post.dateTime.toString());
           }
         }
       });
@@ -118,15 +126,17 @@ const countPosts = async (postData) => {
  * @param {*} req
  * @param {*} res
  */
-const scrapingController = async (req, res) => {
+const scrapingController = async (req: Request, res: Response) => {
   try {
-    const newsUrl = decodeURIComponent(req.query.url);
+    const newsUrl = decodeURIComponent(req.query.url as string);
     const postData = await scrapePageData(newsUrl);
     const countedPosts = await countPosts(postData);
     res.json(countedPosts);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    let message = "Unknown Error";
+    if (error instanceof Error) message = error.message;
+    res.status(500).json({ error: message });
   }
 };
 
-module.exports = scrapingController;
+export default scrapingController;

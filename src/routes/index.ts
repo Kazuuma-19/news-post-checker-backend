@@ -1,6 +1,6 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const studentController = require("../controller/studentController");
+import studentController from "../controller/studentController";
 
 // students
 router.get("/", studentController.index);
@@ -10,4 +10,5 @@ router.post("/", studentController.store);
 router.put("/:id", studentController.update);
 
 router.delete("/:id", studentController.destroy);
-module.exports = router;
+
+export default router;
