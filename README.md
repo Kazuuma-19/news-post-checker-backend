@@ -35,7 +35,8 @@ npm run dev
     <img src="https://img.shields.io/badge/lint staged-424242.svg">
   </a>
   <a href="https://typicode.github.io/husky">
-    <img src="https://img.shields.io/badge/Husky-665867.svg?logo=husky"></a>
+    <img src="https://img.shields.io/badge/Husky-665867.svg?logo=husky">
+  </a>
 </p>
 
 ## Deploy
